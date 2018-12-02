@@ -125,6 +125,7 @@ export class UIMenu extends phaser.GameObjects.Container {
 
 export class UIMenuCharacter extends phaser.GameObjects.Container {
   private previewSprite!: phaser.GameObjects.Sprite;
+  private hpText!: phaser.GameObjects.Text;
 
   constructor(
     scene: phaser.Scene,
@@ -145,6 +146,7 @@ export class UIMenuCharacter extends phaser.GameObjects.Container {
   public update(y: number, width: number, height: number): void {
     this.alignContent(y, width, height);
     this.drawBox();
+    this.updateText();
   }
 
   private onClick(): void {
@@ -183,16 +185,21 @@ export class UIMenuCharacter extends phaser.GameObjects.Container {
   }
 
   private createHPandAPMeter(): void {
-    const hpText = this.scene.add.text(
+    this.hpText = this.scene.add.text(
       paddingSize * 4,
       // tslint:disable-next-line:no-magic-numbers
       paddingSize * 2.5,
-      `${this.character.stats.hitPoints} HP, ${
-        this.character.stats.actionPoints
-      } AP`
+      ''
     );
-    hpText.setFontSize(hpTextSize);
-    this.add(hpText);
+    this.hpText.setFontSize(hpTextSize);
+    this.updateText();
+    this.add(this.hpText);
+  }
+
+  private updateText(): void {
+    this.hpText.text = `${this.character.stats.hitPoints} HP, ${
+      this.character.stats.actionPoints
+    } AP`;
   }
 
   private createPreviewOfChar(from: phaser.GameObjects.Sprite): void {
