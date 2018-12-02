@@ -181,7 +181,9 @@ export class UIMenuCharacter extends phaser.GameObjects.Container {
       paddingSize * 4,
       // tslint:disable-next-line:no-magic-numbers
       paddingSize * 2.5,
-      `${this.character.hitPoints} HP, ${this.character.actionPoints} AP`
+      `${this.character.stats.hitPoints} HP, ${
+        this.character.stats.actionPoints
+      } AP`
     );
     hpText.setFontSize(hpTextSize);
     this.add(hpText);

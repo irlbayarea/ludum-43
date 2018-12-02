@@ -4,6 +4,15 @@ import { Cell, Grid } from './grid';
 import { MessageBox } from '../messageBox';
 
 /**
+ * What controls a given @see PhysicalUnit.
+ */
+export enum Control {
+  Friendly,
+  Hostile,
+  Neutral,
+}
+
+/**
  * Represents a 2D entity on the @see Grid.
  *
  * The unit may or may not be _phyiscally_ displayed (for example, a spawn
@@ -15,7 +24,11 @@ export class PhysicalUnit {
    * @param grid Grid the unit is present on.
    * @param cell Cell the unit should be added to.
    */
-  constructor(protected readonly grid: Grid, protected cell: Cell) {
+  constructor(
+    protected readonly grid: Grid,
+    protected cell: Cell,
+    public control = Control.Neutral
+  ) {
     cell.addUnit(this);
   }
 
@@ -90,9 +103,10 @@ export class DisplayUnit extends PhysicalUnit {
   constructor(
     grid: Grid,
     cell: Cell,
+    control: Control,
     public readonly sprite: phaser.GameObjects.Sprite
   ) {
-    super(grid, cell);
+    super(grid, cell, control);
   }
 
   public update(): void {
@@ -107,42 +121,16 @@ export class DisplayUnit extends PhysicalUnit {
   }
 }
 
-export class Character extends DisplayUnit {
-  public static create(
-    grid: Grid,
-    cell: Cell,
-    scene: phaser.Scene,
-    sprite: 'pc-1' | 'pc-2' | 'pc-3' | 'npc',
-    name: string,
-    hitPoints: number,
-    actionPoints: number
-  ): Character {
-    return new Character(
-      grid,
-      cell,
-      scene.make.sprite({
-        key: sprite,
-      }),
-      name,
-      hitPoints,
-      actionPoints
-    );
-  }
+export class Statistics {
+  private mHitPoints: number;
+  private mActionPoints: number;
 
-  private constructor(
-    grid: Grid,
-    cell: Cell,
-    sprite: phaser.GameObjects.Sprite,
-    public readonly name: string,
-    private readonly mHitPoints: number,
-    private readonly mActionPoints: number
+  constructor(
+    private readonly maxHitPoints: number,
+    private readonly maxActionPoints: number
   ) {
-    super(grid, cell, sprite);
-    this.sprite.setSize(TILE_SIZE, TILE_SIZE);
-    this.sprite.setInteractive({
-      useHandCursor: true,
-    }); // Makes hand cursor show up when pointer over Character
-    this.sprite.setDisplaySize(TILE_SIZE, TILE_SIZE);
+    this.mHitPoints = maxHitPoints;
+    this.mActionPoints = maxActionPoints;
   }
 
   public get actionPoints() {
@@ -151,6 +139,63 @@ export class Character extends DisplayUnit {
 
   public get hitPoints() {
     return this.mHitPoints;
+  }
+
+  public healBy(amount = 1): void {
+    const newHitPoints = this.mHitPoints + amount;
+    this.mHitPoints = Math.min(this.maxHitPoints, newHitPoints);
+  }
+
+  public healFull(): void {
+    this.mHitPoints = this.maxHitPoints;
+  }
+
+  public restoreBy(amount = 1): void {
+    const newActionPoints = this.mActionPoints + amount;
+    this.mActionPoints = Math.min(this.maxActionPoints, newActionPoints);
+  }
+
+  public restoreFull(): void {
+    this.mActionPoints = this.maxActionPoints;
+  }
+}
+
+export class Character extends DisplayUnit {
+  public static create(
+    grid: Grid,
+    cell: Cell,
+    scene: phaser.Scene,
+    sprite: 'pc-1' | 'pc-2' | 'pc-3' | 'npc',
+    control: Control,
+    name: string,
+    stats: Statistics
+  ): Character {
+    return new Character(
+      grid,
+      cell,
+      scene.make.sprite({
+        key: sprite,
+      }),
+      control,
+      name,
+      stats
+    );
+  }
+
+  private constructor(
+    grid: Grid,
+    cell: Cell,
+    sprite: phaser.GameObjects.Sprite,
+    control: Control,
+    public readonly name: string,
+    public readonly stats: Statistics
+  ) {
+    super(grid, cell, control, sprite);
+    this.sprite.setSize(TILE_SIZE, TILE_SIZE);
+    this.sprite.setInteractive({
+      useHandCursor: true,
+    }); // Makes hand cursor show up when pointer over Character
+    this.sprite.setDisplaySize(TILE_SIZE, TILE_SIZE);
   }
 
   // Rotates sprite according to new direction it is facing

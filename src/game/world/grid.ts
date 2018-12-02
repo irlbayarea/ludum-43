@@ -59,29 +59,12 @@ export class Cell {
   }
 
   /**
-   * Enumerable collection of adjacent cells.
+   * Enumerable collection of cells within a distance @param fill of current.
    */
-  // public get adjacentCells(): Iterable<Cell> {
-  //   const results = [
-  //     // N
-  //     this.grid.get(this.x, this.y - 1),
-  //     // E
-  //     this.grid.get(this.x + 1, this.y),
-  //     // S
-  //     this.grid.get(this.x, this.y + 1),
-  //     // W
-  //     this.grid.get(this.x - 1, this.y),
-  //   ];
-  //   return results.filter(r => r !== null);
-  // }
-
-  /**
-   * Enumerable collection of cells within a distance 1 of current position
-   */
-  public get adjacentCells(): Iterable<Cell> {
+  public adjacentCells(fill = 1): Iterable<Cell> {
     const results = [];
-    for (let i: integer = -1; i <= 1; i += 1) {
-      for (let j: integer = -1; j <= 1; j += 1) {
+    for (let i = -fill; i <= fill; i += 1) {
+      for (let j = -fill; j <= fill; j += 1) {
         results.push(this.grid.get(this.x + i, this.y + j));
       }
     }
@@ -97,8 +80,8 @@ export class Cell {
   /**
    * Enumerable collection of adjacent pathable cells.
    */
-  public get pathableCells(): Iterable<Cell> {
-    return Array.from(this.adjacentCells).filter(f => f.isPathable);
+  public pathableCells(fill = 1): Iterable<Cell> {
+    return Array.from(this.adjacentCells(fill)).filter(f => f.isPathable);
   }
 }
 

@@ -1,18 +1,22 @@
 import * as phaser from 'phaser';
 import { Grid } from './grid';
-import { Character, PhysicalUnit } from './unit';
+import { Character, PhysicalUnit, Statistics, Control } from './unit';
 import { UNIT_LAYER_NAME } from '../constants';
 import { UILayer, UILayerTile } from './ui-layer';
+import { AIController } from './ai-controller';
 
 /**
  * The World class defines the game world.
  */
 export class World {
   private readonly grid!: Grid;
-  private selectedPlayerId: number = 0;
   private readonly uiLayer!: UILayer;
+  private readonly aiController: AIController;
+
+  private selectedPlayerId: number = 0;
+
   private playerActions: UnitAction[] = [];
-  private gridEvents: GridEvent[] = [];
+  private readonly gridEvents: GridEvent[] = [];
 
   constructor(
     public readonly scene: phaser.Scene,
@@ -23,6 +27,7 @@ export class World {
   ) {
     this.uiLayer = new UILayer(this.tilemap);
     this.grid = new Grid(tilemap, groundLayer);
+    this.aiController = new AIController(this.grid, this.zombies);
     this.loadFromTilemapObjectLayer(tilemap);
     this.selectPlayer(0);
   }
@@ -118,8 +123,7 @@ export class World {
   }
 
   public endTurn(): void {
-    // tslint:disable-next-line:no-console
-    console.log('--- END TURN ---');
+    this.aiController.doTurn();
   }
 
   /**
@@ -163,9 +167,12 @@ export class World {
       this.tilemap.scene,
       // tslint:disable-next-line:no-any
       asset.name as any,
+      Control.Friendly,
       asset.rawProperties.get('name'),
-      asset.rawProperties.get('hp'),
-      asset.rawProperties.get('ap')
+      new Statistics(
+        asset.rawProperties.get('hp'),
+        asset.rawProperties.get('ap')
+      )
     );
     this.players.push(player);
   }
@@ -176,9 +183,9 @@ export class World {
       this.grid.get(asset.tileX, asset.tileY),
       this.tilemap.scene,
       'npc',
+      Control.Hostile,
       'Zombie',
-      3,
-      3
+      new Statistics(2, 4)
     );
     this.zombies.push(player);
   }
