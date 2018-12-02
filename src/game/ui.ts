@@ -146,7 +146,7 @@ export class UIMenuCharacter extends phaser.GameObjects.Container {
   }
 
   public isSelected(): boolean {
-    return this.uimenu.world.getSelectedPlayer() === this.id;
+    return this.uimenu.world.getSelectedPlayerId() === this.id;
   }
 
   private alignContent(y: number, width: number, height: number): void {

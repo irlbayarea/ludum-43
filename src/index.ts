@@ -45,7 +45,13 @@ class HelloScene extends phaser.Scene {
     );
     this.cameras.main.scrollX = 200;
 
-    this.world = new World(this, this.tilemap, this.players, this.zombies);
+    this.world = new World(
+      this,
+      this.tilemap,
+      this.groundLayer,
+      this.players,
+      this.zombies
+    );
     this.createUI();
   }
 

@@ -2,45 +2,77 @@ import * as phaser from 'phaser';
 import { Grid } from './grid';
 import { Character, PhysicalUnit } from './unit';
 import { UNIT_LAYER_NAME } from '../constants';
+import { UILayer, UILayerTile } from './ui-layer';
 
 /**
  * The World class defines the game world.
  */
 export class World {
-  private readonly grid: Grid;
-  private selectedPlayerID: number = 0;
+  private readonly grid!: Grid;
+  private selectedPlayerId: number = 0;
   private readonly uiLayer!: UILayer;
+  private playerActions: UnitAction[] = [];
 
   constructor(
     public readonly scene: phaser.Scene,
     private readonly tilemap: phaser.Tilemaps.Tilemap,
+    groundLayer: phaser.Tilemaps.DynamicTilemapLayer,
     private readonly players: Character[],
     private readonly zombies: Character[]
   ) {
-    this.grid = new Grid(this.tilemap);
     this.uiLayer = new UILayer(this.tilemap);
-    // Instantiate the players.
-    this.grid = new Grid(tilemap);
+    this.grid = new Grid(tilemap, groundLayer);
     this.loadFromTilemapObjectLayer(tilemap);
     this.selectPlayer(0);
   }
 
   public handleClick(gridX: number, gridY: number) {
+    let didSelectPlayer = false;
     this.players.forEach((p, id) => {
       if (gridX === p.x && gridY === p.y) {
         this.selectPlayer(id);
+        didSelectPlayer = true;
       }
     });
+    if (didSelectPlayer) {
+      return;
+    }
+    this.playerActions
+      .filter(
+        action => gridX === action.position.x && gridY === action.position.y
+      )
+      .forEach((_) /* action */ => {
+        const cell = this.grid.get(gridX, gridY);
+        this.getSelectedPlayer().moveImmediate(cell);
+        this.selectPlayer(this.getSelectedPlayerId());
+      });
   }
 
   public selectPlayer(id: number) {
-    this.selectedPlayerID = id;
+    this.selectedPlayerId = id;
+    this.uiLayer.clearActive();
     this.uiLayer.setActive(this.players[id].x, this.players[id].y);
     this.scene.cameras.main.startFollow(this.players[id].sprite);
+    this.updatePlayerActions();
+  }
+
+  private updatePlayerActions() {
+    this.playerActions = this.getUnitActions(this.getSelectedPlayer());
+    for (const action of this.playerActions) {
+      this.uiLayer.setActive(
+        action.position.x,
+        action.position.y,
+        UILayerTile.BLUE
+      );
+    }
+  }
+
+  public getSelectedPlayerId() {
+    return this.selectedPlayerId;
   }
 
   public getSelectedPlayer() {
-    return this.selectedPlayerID;
+    return this.players[this.selectedPlayerId];
   }
 
   /**
@@ -51,16 +83,32 @@ export class World {
     const x = unit.x;
     const y = unit.y;
     if (x > 0) {
-      actions.push(new UnitAction('move', new phaser.Math.Vector2(x - 1, y)));
+      const position = new phaser.Math.Vector2(x - 1, y);
+      const cell = this.grid.get(position.x, position.y);
+      if (cell !== null && !cell.collides()) {
+        actions.push(new UnitAction('move', position));
+      }
     }
     if (x < this.grid.width - 1) {
-      actions.push(new UnitAction('move', new phaser.Math.Vector2(x + 1, y)));
+      const position = new phaser.Math.Vector2(x + 1, y);
+      const cell = this.grid.get(position.x, position.y);
+      if (cell !== null && !cell.collides()) {
+        actions.push(new UnitAction('move', position));
+      }
     }
     if (y > 0) {
-      actions.push(new UnitAction('move', new phaser.Math.Vector2(x, y - 1)));
+      const position = new phaser.Math.Vector2(x, y - 1);
+      const cell = this.grid.get(position.x, position.y);
+      if (cell !== null && !cell.collides()) {
+        actions.push(new UnitAction('move', position));
+      }
     }
     if (y < this.grid.height - 1) {
-      actions.push(new UnitAction('move', new phaser.Math.Vector2(x, y + 1)));
+      const position = new phaser.Math.Vector2(x, y + 1);
+      const cell = this.grid.get(position.x, position.y);
+      if (cell !== null && !cell.collides()) {
+        actions.push(new UnitAction('move', position));
+      }
     }
     return actions;
   }
@@ -126,44 +174,6 @@ export class UnitAction {
     this.type = type;
     this.position = new phaser.Math.Vector2(position);
   }
-}
-
-class UILayer {
-  private readonly mLayer: phaser.Tilemaps.DynamicTilemapLayer;
-  private selectedTiles: phaser.Tilemaps.Tile[] = [];
-
-  constructor(parent: phaser.Tilemaps.Tilemap) {
-    const tilemap = parent.scene.make.tilemap();
-    const tileset = tilemap.addTilesetImage('colors', 'colors');
-    this.mLayer = parent.createBlankDynamicLayer('UILayer', tileset);
-    this.mLayer.alpha = 0.5;
-    this.mLayer.depth = 10;
-  }
-
-  public setActive(x: number, y: number): void {
-    // Clear anything on the UI layer.
-    this.clearActive();
-
-    // Make the selected tile yellow.
-    this.insert(x, y, UILayerTile.GREEN);
-  }
-
-  public clearActive(): void {
-    this.selectedTiles.forEach(t => this.mLayer.removeTileAt(t.x, t.y));
-    this.selectedTiles = [];
-  }
-
-  private insert(x: number, y: number, tile: UILayerTile): void {
-    this.selectedTiles.push(this.mLayer.putTileAt(tile, x, y));
-  }
-}
-
-export enum UILayerTile {
-  BLACK = 0,
-  RED = 3,
-  YELLOW = 5,
-  GREEN = 6,
-  BLUE = 7,
 }
 
 /**

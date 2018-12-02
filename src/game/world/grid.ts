@@ -99,13 +99,20 @@ export class Grid {
   private readonly cells: Cell[];
 
   // Constructs a new Grid from the given tilemap.
-  constructor(tilemap: phaser.Tilemaps.Tilemap) {
+  constructor(
+    tilemap: phaser.Tilemaps.Tilemap,
+    groundLayer: phaser.Tilemaps.DynamicTilemapLayer
+  ) {
     this.width = tilemap.width;
     this.height = tilemap.height;
     this.cells = new Array<Cell>(this.width * this.height);
     for (let y: number = 0; y < this.height; y++) {
       for (let x: number = 0; x < this.width; x++) {
-        const collidesFn = () => tilemap.getTileAt(x, y).collides;
+        const collidesFn = () => {
+          const tile = groundLayer.getTileAt(x, y);
+          // Consider blank tiles collidable.
+          return tile === null || tile.collides;
+        };
         this.set(x, y, new Cell(this, collidesFn, x, y));
       }
     }
