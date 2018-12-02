@@ -61,20 +61,32 @@ export class Cell {
   /**
    * Enumerable collection of adjacent cells.
    */
+  // public get adjacentCells(): Iterable<Cell> {
+  //   const results = [
+  //     // N
+  //     this.grid.get(this.x, this.y - 1),
+  //     // E
+  //     this.grid.get(this.x + 1, this.y),
+  //     // S
+  //     this.grid.get(this.x, this.y + 1),
+  //     // W
+  //     this.grid.get(this.x - 1, this.y),
+  //   ];
+  //   return results.filter(r => r !== null);
+  // }
+
+  /**
+   * Enumerable collection of cells within a distance 1 of current position
+   */
   public get adjacentCells(): Iterable<Cell> {
-    const results = [
-      // N
-      this.grid.get(this.x, this.y - 1),
-      // E
-      this.grid.get(this.x + 1, this.y),
-      // S
-      this.grid.get(this.x, this.y + 1),
-      // W
-      this.grid.get(this.x - 1, this.y),
-    ];
+    const results = [];
+    for (let i: integer = -1; i <= 1; i += 1) {
+      for (let j: integer = -1; j <= 1; j += 1) {
+        results.push(this.grid.get(this.x + i, this.y + j));
+      }
+    }
     return results.filter(r => r !== null);
   }
-
   /**
    * Whether this cell can handle characters moving into it.
    */

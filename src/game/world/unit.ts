@@ -148,4 +148,16 @@ export class Character extends DisplayUnit {
   public get hitPoints() {
     return this.mHitPoints;
   }
+
+  // Rotates sprite according to new direction it is facing
+  public moveImmediate(newCell: Cell): void {
+    const rotAngle: number = Math.atan2(
+      newCell.y - this.cell.y,
+      newCell.x - this.cell.x
+    );
+
+    super.moveImmediate(newCell);
+
+    this.sprite.rotation = rotAngle;
+  }
 }

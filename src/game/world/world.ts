@@ -88,6 +88,10 @@ export class World {
     return this.players[this.selectedPlayerId];
   }
 
+  public xyInBounds(x: number, y: number) {
+    return x >= 0 && x <= this.grid.width && y >= 0 && y <= this.grid.height;
+  }
+
   /**
    * Returns an array of available unit actions for the given unit.
    */
@@ -95,34 +99,22 @@ export class World {
     const actions: UnitAction[] = [];
     const x = unit.x;
     const y = unit.y;
-    if (x > 0) {
-      const position = new phaser.Math.Vector2(x - 1, y);
-      const cell = this.grid.get(position.x, position.y);
-      if (cell !== null && !cell.collides()) {
-        actions.push(new UnitAction('move', position));
+
+    // Return a list of positions within a box
+    // of height and width 2*d of current position
+    const d: integer = 2;
+    for (let i: integer = -d; i <= d; i += 1) {
+      for (let j: integer = -d; j <= d; j += 1) {
+        if (this.xyInBounds(x + i, y + j)) {
+          const position = new phaser.Math.Vector2(x + i, y + j);
+          const cell = this.grid.get(position.x, position.y);
+          if (cell !== null && !cell.collides()) {
+            actions.push(new UnitAction('move', position));
+          }
+        }
       }
     }
-    if (x < this.grid.width - 1) {
-      const position = new phaser.Math.Vector2(x + 1, y);
-      const cell = this.grid.get(position.x, position.y);
-      if (cell !== null && !cell.collides()) {
-        actions.push(new UnitAction('move', position));
-      }
-    }
-    if (y > 0) {
-      const position = new phaser.Math.Vector2(x, y - 1);
-      const cell = this.grid.get(position.x, position.y);
-      if (cell !== null && !cell.collides()) {
-        actions.push(new UnitAction('move', position));
-      }
-    }
-    if (y < this.grid.height - 1) {
-      const position = new phaser.Math.Vector2(x, y + 1);
-      const cell = this.grid.get(position.x, position.y);
-      if (cell !== null && !cell.collides()) {
-        actions.push(new UnitAction('move', position));
-      }
-    }
+
     return actions;
   }
 
