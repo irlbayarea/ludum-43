@@ -35,6 +35,7 @@ export class UIMenu extends phaser.GameObjects.Container {
     this.add(this.graphics);
     this.add(this.titleText);
     this.update();
+    this.createEndTurnButton();
 
     // Ignore Camera.
     this.setScrollFactor(0, 0);
@@ -72,6 +73,47 @@ export class UIMenu extends phaser.GameObjects.Container {
     this.y = 0;
     this.width = UIMenu.uiWidth;
     this.height = height;
+  }
+
+  private createEndTurnButton(): void {
+    const button = this.scene.add.container(
+      paddingSize,
+      this.height - charHeight - paddingSize
+    );
+    button.setScrollFactor(0);
+    button.setSize(this.width - paddingSize * 2, charHeight);
+    this.add(button);
+
+    const graphics = this.scene.add.graphics();
+    button.add(graphics);
+    graphics.lineStyle(1, 0xccc);
+    graphics.fillStyle(0xaaa);
+    graphics.strokeRect(0, 0, button.width, button.height);
+    graphics.fillRect(0, 0, button.width, button.height);
+
+    const text = this.scene.add.text(
+      button.width / 2,
+      button.height / 2,
+      'End Turn'
+    );
+    text.setPosition(text.x - text.width / 2, text.y - text.height / 2);
+    button.add(text);
+
+    const rect = new phaser.Geom.Rectangle(
+      button.width / 2,
+      button.height / 2,
+      button.width,
+      button.height
+    );
+    button
+      .setInteractive({
+        hitArea: rect,
+        hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+        useHandCursor: true,
+      })
+      .on('pointerdown', () => {
+        this.world.endTurn();
+      });
   }
 }
 

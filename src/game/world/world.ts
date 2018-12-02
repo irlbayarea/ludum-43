@@ -65,6 +65,11 @@ export class World {
     return actions;
   }
 
+  public endTurn(): void {
+    // tslint:disable-next-line:no-console
+    console.log('--- END TURN ---');
+  }
+
   /**
    * Loads the data from the object layer of the given tilemap.
    */
