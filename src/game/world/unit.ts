@@ -1,6 +1,7 @@
 import { TILE_SIZE } from './../constants';
 import * as phaser from 'phaser';
 import { Cell, Grid } from './grid';
+import { MessageBox } from '../messageBox';
 
 /**
  * Represents a 2D entity on the @see Grid.
@@ -138,6 +139,9 @@ export class Character extends DisplayUnit {
   ) {
     super(grid, cell, sprite);
     this.sprite.setSize(TILE_SIZE, TILE_SIZE);
+    this.sprite.setInteractive({
+      useHandCursor: true,
+    }); // Makes hand cursor show up when pointer over Character
     this.sprite.setDisplaySize(TILE_SIZE, TILE_SIZE);
   }
 
@@ -159,5 +163,16 @@ export class Character extends DisplayUnit {
     super.moveImmediate(newCell);
 
     this.sprite.rotation = rotAngle;
+  }
+
+  /**
+   * Displays a MessageBox with text
+   * @param scene
+   * @param text
+   */
+  public speak(scene: phaser.Scene, text: string) {
+    // Display message box
+    const msgbox = new MessageBox(scene, this, text);
+    scene.children.add(msgbox);
   }
 }

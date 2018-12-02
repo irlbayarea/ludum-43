@@ -1,4 +1,3 @@
-import { Speech } from './../speech';
 import * as phaser from 'phaser';
 import { Grid } from './grid';
 import { Character, PhysicalUnit } from './unit';
@@ -13,7 +12,6 @@ export class World {
   private selectedPlayerId: number = 0;
   private readonly uiLayer!: UILayer;
   private playerActions: UnitAction[] = [];
-  private readonly speechBubbles: Speech[] = [];
 
   constructor(
     public readonly scene: phaser.Scene,
@@ -56,17 +54,8 @@ export class World {
     this.uiLayer.setActive(this.players[id].x, this.players[id].y);
     this.scene.cameras.main.startFollow(this.players[id].sprite);
     this.updatePlayerActions();
-    // Display speech bubble
-    const bubble = new Speech(
-      this.scene,
-      `Hello! My name is ${
-        this.players[id].name
-      }! How are you? What's YOUR name??`,
-      this.players[id].sprite.x,
-      this.players[id].sprite.y
-    );
-    this.scene.children.add(bubble);
-    this.speechBubbles.push(bubble);
+
+    this.players[id].speak(this.scene, 'Oh gawd get us outta here!');
   }
 
   private updatePlayerActions() {
@@ -102,7 +91,7 @@ export class World {
 
     // Return a list of positions within a box
     // of height and width 2*d of current position
-    const d: integer = 2;
+    const d: integer = 1;
     for (let i: integer = -d; i <= d; i += 1) {
       for (let j: integer = -d; j <= d; j += 1) {
         if (this.xyInBounds(x + i, y + j)) {
