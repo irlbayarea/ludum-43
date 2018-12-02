@@ -42,7 +42,7 @@ export class ObjectDataParser {
               grid,
               grid.get(x, y),
               tilemap.scene,
-              data.name as any,
+              'npc',
               Control.Hostile,
               'Zombie',
               new Statistics(props.get('hp'), props.get('ap'))

@@ -4,13 +4,15 @@ import { Character, PhysicalUnit } from './unit';
 import { UILayer, UILayerTile } from './ui-layer';
 import { AIController } from './ai-controller';
 import { IGridEvent, ObjectDataParser } from './parser';
+import { UIMenu } from '../ui';
 
 /**
  * The World class defines the game world.
  */
 export class World {
   private readonly grid!: Grid;
-  private readonly uiLayer!: UILayer;
+  private readonly uiLayer: UILayer;
+  private readonly uiMenu: UIMenu;
   private readonly aiController: AIController;
   private readonly gridEvents: IGridEvent[] = [];
 
@@ -25,10 +27,20 @@ export class World {
     private readonly players: Character[],
     private readonly zombies: Character[]
   ) {
+    // Create UI.
     this.uiLayer = new UILayer(this.tilemap);
+    this.uiMenu = new UIMenu(scene, this);
+    this.scene.children.add(this.uiMenu);
+    this.scene.input.topOnly = true;
+
+    // Create grid, AI controller.
     this.grid = new Grid(tilemap, groundLayer);
     this.aiController = new AIController(this.grid, this.zombies);
+
+    // Load JSON.
     this.loadFromTilemapObjectLayer(tilemap);
+
+    // Select starting player.
     this.selectPlayer(0);
   }
 
@@ -73,7 +85,58 @@ export class World {
       });
   }
 
-  public selectPlayer(id: number) {
+  /**
+   * Should be called on each game loop update.
+   */
+  public gameLoopUpdate(): void {
+    this.uiMenu.update();
+    this.players.forEach(p => p.update());
+    this.zombies.forEach(p => p.update());
+  }
+
+  /**
+   * Should be called when @param character enters the game.
+   */
+  public spawnFriendly(character: Character): void {
+    this.players.push(character);
+    this.uiMenu.addCharacter(character);
+  }
+
+  /**
+   * Should be called when @param character is defeated.
+   */
+  public killFriendly(character: Character): void {
+    this.players.splice(this.players.indexOf(character), 1);
+    this.uiMenu.removeCharacter(character);
+    // TODO: Remove from the screen.
+    // TODO: Message or notification.
+    // TODO: Ensure a dead unit is not selected.
+  }
+
+  /**
+   * Should be called when @param character is mutated.
+   */
+  public touchedFriendly(): void {
+    this.uiMenu.update();
+  }
+
+  /**
+   * Should be called when @param character enters the game.
+   */
+  public spawnHostile(character: Character): void {
+    this.zombies.push(character);
+  }
+
+  /**
+   * Should be called when @param character is defeated.
+   */
+  public killHostile(character: Character): void {
+    this.zombies.splice(this.players.indexOf(character), 1);
+    // TODO: Remove from the screen.
+    // TODO: Message or notification.
+  }
+
+  public selectPlayer(id: number): void {
     this.selectedPlayerId = id;
     this.uiLayer.clearActive();
     this.uiLayer.setActive(this.players[id].x, this.players[id].y);
@@ -149,15 +212,9 @@ export class World {
    */
   private loadFromTilemapObjectLayer(tilemap: phaser.Tilemaps.Tilemap): void {
     new ObjectDataParser({
-      spawnPlayer: c => {
-        this.players.push(c);
-      },
-      spawnHostile: c => {
-        this.zombies.push(c);
-      },
-      addGridEvent: e => {
-        this.gridEvents.push(e);
-      },
+      spawnPlayer: p => this.spawnFriendly(p),
+      spawnHostile: z => this.spawnHostile(z),
+      addGridEvent: e => this.gridEvents.push(e),
     }).parse(this.grid, tilemap);
   }
 }

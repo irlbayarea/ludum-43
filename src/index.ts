@@ -1,5 +1,4 @@
 import * as phaser from 'phaser';
-import { UIMenu } from './game/ui';
 import { World } from './game/world/world';
 import { Character } from './game/world/unit';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from './game/constants';
@@ -9,7 +8,6 @@ class HelloScene extends phaser.Scene {
   private readonly zombies: Character[] = [];
   private readonly players: Character[] = [];
 
-  private uiMenu!: UIMenu;
   private tilemap!: phaser.Tilemaps.Tilemap;
   private world!: World;
   private groundLayer!: phaser.Tilemaps.DynamicTilemapLayer;
@@ -52,19 +50,11 @@ class HelloScene extends phaser.Scene {
       this.players,
       this.zombies
     );
-    this.createUI();
   }
 
   public update(_: number, __: number): void {
-    this.uiMenu.update();
-    this.players.forEach(p => p.update());
-    this.zombies.forEach(p => p.update());
-    this.panCameraInput();
+    this.world.gameLoopUpdate();
     this.mouseInput();
-  }
-
-  private panCameraInput(): void {
-    this.uiMenu.update();
   }
 
   private mouseInput(): void {
@@ -83,13 +73,6 @@ class HelloScene extends phaser.Scene {
       }
     }
     this.mouseDown = pointer.isDown;
-  }
-
-  private createUI(): void {
-    this.uiMenu = new UIMenu(this, this.world);
-    this.players.forEach(p => this.uiMenu.addCharacter(p));
-    this.children.add(this.uiMenu);
-    this.input.topOnly = true;
   }
 }
 

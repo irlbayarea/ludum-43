@@ -55,6 +55,12 @@ export class UIMenu extends phaser.GameObjects.Container {
     return item;
   }
 
+  public removeCharacter(character: Character): void {
+    const item = this.characters.find(c => c.character === character)!;
+    this.remove(item);
+    this.characters.splice(this.characters.indexOf(item), 1);
+  }
+
   public update(): void {
     this.alignBounds();
     this.graphics.clear();
@@ -125,7 +131,7 @@ export class UIMenuCharacter extends phaser.GameObjects.Container {
     private readonly uimenu: UIMenu,
     private readonly target: phaser.GameObjects.Sprite,
     private readonly graphics: phaser.GameObjects.Graphics,
-    private readonly character: Character,
+    public readonly character: Character,
     private readonly id: number
   ) {
     super(scene);
