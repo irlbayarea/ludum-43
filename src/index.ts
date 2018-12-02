@@ -11,16 +11,13 @@ declare const FLAGS_DIMENSIONS: {
 
 // Test Scene
 class HelloScene extends phaser.Scene {
-  private players: Character[] = [];
   private readonly zombies: Character[] = [];
+  private readonly players: Character[] = [];
 
-  private cursors!: phaser.Input.Keyboard.CursorKeys;
   private uiMenu!: UIMenu;
-
   private tilemap!: phaser.Tilemaps.Tilemap;
   private world!: World;
   private groundLayer!: phaser.Tilemaps.DynamicTilemapLayer;
-
   private mouseDown: boolean = false;
 
   constructor() {
@@ -45,27 +42,17 @@ class HelloScene extends phaser.Scene {
     const tileset = this.tilemap.addTilesetImage('spaceship');
     this.groundLayer = this.tilemap.createDynamicLayer(0, tileset, 0, 0);
     this.groundLayer.setCollisionByProperty({ collides: true });
-
-    this.players = [];
-
-    this.cursors = this.input.keyboard.createCursorKeys();
     this.cameras.main.setBounds(
       0,
       0,
       this.tilemap.widthInPixels,
       this.tilemap.heightInPixels
     );
+    this.cameras.main.scrollX = 200;
 
     this.world = new World(this, this.tilemap, this.players, this.zombies);
     this.createUI();
   }
-
-  // TODO: Pan the camera to selected units
-  // public panCameraToTile(tileX: number, tileY: number) {
-  // const worldX = this.tilemap.worldToTileX();
-  // const worldY = this.tilemap.worldToTileY();
-  // this.cameras.main.centerOn()
-  // }
 
   public update(_: number, __: number): void {
     this.uiMenu.update();
@@ -77,18 +64,6 @@ class HelloScene extends phaser.Scene {
 
   private panCameraInput(): void {
     this.uiMenu.update();
-    const panSpeed = 5;
-    let x = 0;
-    let y = 0;
-    x += this.cursors.left!.isDown ? panSpeed : 0;
-    x += this.cursors.right!.isDown ? -panSpeed : 0;
-    y += this.cursors.down!.isDown ? -panSpeed : 0;
-    y += this.cursors.up!.isDown ? panSpeed : 0;
-    if (x !== 0 || y !== 0) {
-      x += this.cameras.main.x;
-      y += this.cameras.main.y;
-      this.cameras.main.setPosition(x, y);
-    }
   }
 
   private mouseInput(): void {

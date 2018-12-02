@@ -9,7 +9,7 @@ import { UNIT_LAYER_NAME } from '../constants';
 export class World {
   private readonly grid: Grid;
   private selectedPlayerID: number = 0;
-  private uilayer!: UILayer;
+  private readonly uiLayer!: UILayer;
 
   constructor(
     public readonly scene: phaser.Scene,
@@ -18,10 +18,11 @@ export class World {
     private readonly zombies: Character[]
   ) {
     this.grid = new Grid(this.tilemap);
-    this.uilayer = new UILayer(this.tilemap);
+    this.uiLayer = new UILayer(this.tilemap);
     // Instantiate the players.
     this.grid = new Grid(tilemap);
     this.loadFromTilemapObjectLayer(tilemap);
+    this.selectPlayer(0);
   }
 
   public handleClick(gridX: number, gridY: number) {
@@ -34,7 +35,7 @@ export class World {
 
   public selectPlayer(id: number) {
     this.selectedPlayerID = id;
-    this.uilayer.setActive(this.players[id].x, this.players[id].y);
+    this.uiLayer.setActive(this.players[id].x, this.players[id].y);
     this.scene.cameras.main.startFollow(this.players[id].sprite);
   }
 
