@@ -1,9 +1,9 @@
 import * as phaser from 'phaser';
 import { Grid } from './grid';
-import { Character, PhysicalUnit, Statistics, Control } from './unit';
-import { UNIT_LAYER_NAME } from '../constants';
+import { Character, PhysicalUnit } from './unit';
 import { UILayer, UILayerTile } from './ui-layer';
 import { AIController } from './ai-controller';
+import { IGridEvent, ObjectDataParser } from './parser';
 
 /**
  * The World class defines the game world.
@@ -12,11 +12,11 @@ export class World {
   private readonly grid!: Grid;
   private readonly uiLayer!: UILayer;
   private readonly aiController: AIController;
+  private readonly gridEvents: IGridEvent[] = [];
 
   private selectedPlayerId: number = 0;
 
   private playerActions: UnitAction[] = [];
-  private readonly gridEvents: GridEvent[] = [];
 
   constructor(
     public readonly scene: phaser.Scene,
@@ -148,64 +148,17 @@ export class World {
    * Loads the data from the object layer of the given tilemap.
    */
   private loadFromTilemapObjectLayer(tilemap: phaser.Tilemaps.Tilemap): void {
-    const unitLayer = tilemap.getObjectLayer(UNIT_LAYER_NAME);
-    unitLayer!.objects.forEach(gameObject => {
-      const rawAssetObject = new RawAssetObject(gameObject, tilemap);
-      if (rawAssetObject !== null) {
-        switch (rawAssetObject.rawProperties.get('object-type')) {
-          case 'pc-spawn':
-            this.spawnPlayer(rawAssetObject);
-            break;
-          case 'hostile-spawn':
-            this.spawnHostile(rawAssetObject);
-            break;
-          case 'grid-event':
-            this.addGridEvent(rawAssetObject);
-            break;
-        }
-      }
-    });
-  }
-
-  private addGridEvent(asset: RawAssetObject): void {
-    this.gridEvents.push(
-      new GridEvent(
-        asset.tileX,
-        asset.tileY,
-        asset.rawProperties.get('grid-event-type'),
-        asset.rawProperties.get('text')
-      )
-    );
-  }
-
-  private spawnPlayer(asset: RawAssetObject): void {
-    const player = Character.create(
-      this.grid,
-      this.grid.get(asset.tileX, asset.tileY),
-      this.tilemap.scene,
-      // tslint:disable-next-line:no-any
-      asset.name as any,
-      Control.Friendly,
-      asset.rawProperties.get('name'),
-      new Statistics(
-        asset.rawProperties.get('hp'),
-        asset.rawProperties.get('ap')
-      )
-    );
-    this.players.push(player);
-  }
-
-  private spawnHostile(asset: RawAssetObject): void {
-    const player = Character.create(
-      this.grid,
-      this.grid.get(asset.tileX, asset.tileY),
-      this.tilemap.scene,
-      'npc',
-      Control.Hostile,
-      'Zombie',
-      new Statistics(2, 4)
-    );
-    this.zombies.push(player);
+    new ObjectDataParser({
+      spawnPlayer: c => {
+        this.players.push(c);
+      },
+      spawnHostile: c => {
+        this.zombies.push(c);
+      },
+      addGridEvent: e => {
+        this.gridEvents.push(e);
+      },
+    }).parse(this.grid, tilemap);
   }
 }
 
@@ -217,61 +170,5 @@ export class UnitAction {
   ) {
     this.type = type;
     this.position = new phaser.Math.Vector2(position);
-  }
-}
-
-/**
- * Class encapsulating an event associated with a specific space in the world grid
- */
-export class GridEvent {
-  constructor(
-    public readonly x: number,
-    public readonly y: number,
-    public readonly type: 'speak',
-    public readonly text: string
-  ) {}
-}
-
-/**
- * The RawAssetObject class represents a Tilemap object layer object.
- */
-class RawAssetObject {
-  public readonly name: string;
-  public readonly x: number;
-  public readonly y: number;
-  public readonly tileX: number;
-  public readonly tileY: number;
-  // These are the "Custom properties" as set in Tiled editor.
-  // tslint:disable-next-line:no-any
-  public readonly rawProperties: Map<string, any>;
-
-  /**
-   * Constructs a RawAssetObject
-   */
-  constructor(
-    gameObject: phaser.GameObjects.GameObject,
-    tilemap: phaser.Tilemaps.Tilemap
-  ) {
-    // Need to access properties that are set by the asset loader but that don't
-    // exist on GameObject for whatever reason.
-    // tslint:disable-next-line:no-any
-    const objData = (gameObject as any) as {
-      name: string;
-      x: number;
-      y: number;
-      width: number;
-      properties: Array<{ name: string; type: string; value: string }>;
-    };
-    const rawProperties = new Map<string, string>();
-    objData.properties.forEach(property => {
-      rawProperties.set(property.name, property.value);
-    });
-    // We parsed them, now set this object's fields.
-    this.name = objData.name;
-    this.x = objData.x;
-    this.y = objData.y;
-    this.tileX = tilemap.worldToTileX(objData.x - objData.width / 2);
-    this.tileY = tilemap.worldToTileY(objData.y - objData.width / 2);
-    this.rawProperties = rawProperties;
   }
 }
