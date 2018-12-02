@@ -4227,7 +4227,7 @@
             {
               "name": "object-type",
               "type": "string",
-              "value": "goal"
+              "value": "grid-event"
             }
           ],
           "rotation": 0,
@@ -4319,6 +4319,11 @@
           "name": "hostile-3",
           "point": true,
           "properties": [
+            {
+              "name": "grid-event-type",
+              "type": "string",
+              "value": "win"
+            },
             {
               "name": "object-type",
               "type": "string",
