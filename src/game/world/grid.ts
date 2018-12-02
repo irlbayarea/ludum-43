@@ -55,7 +55,7 @@ export class Cell {
    * Enumerable collection of all the units in the location.
    */
   public get units(): Iterable<PhysicalUnit> {
-    return this.units;
+    return this.mUnits;
   }
 
   // TODO: Implement this function as "getCellsInWalkingDistance" and use it in

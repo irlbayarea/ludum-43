@@ -137,8 +137,26 @@ export class Statistics {
     return this.mActionPoints;
   }
 
+  public useActionPoints(amount = 1): boolean {
+    const newActionPoints = this.mActionPoints - amount;
+    if (newActionPoints >= 0) {
+      this.mActionPoints = newActionPoints;
+      return true;
+    }
+    return false;
+  }
+
   public get hitPoints() {
     return this.mHitPoints;
+  }
+
+  public useHitPoints(amount = 1): boolean {
+    const newHitPoints = this.mHitPoints - amount;
+    if (newHitPoints >= 0) {
+      this.mHitPoints = newHitPoints;
+      return true;
+    }
+    return false;
   }
 
   public healBy(amount = 1): void {

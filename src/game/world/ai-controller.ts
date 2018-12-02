@@ -19,6 +19,7 @@ export class AIController {
    */
   public doTurn(): void {
     this.zombies.forEach(z => {
+      z.stats.restoreFull();
       const position = this.grid.get(z.x, z.y);
       const nearby: Character[] = [];
       for (const cell of position.adjacentCells(
@@ -58,14 +59,17 @@ export class AIController {
       }
 
       // Seconary: Move.
-      // TODO.
+      this.doMoveTowards(zombie, closest);
+      return;
     }
 
     // Tertiary: Wander.
-    // TODO.
+    // TODO. For now just exhaust AP.
+    zombie.stats.useActionPoints();
   }
 
   private doAttack(zombie: Character, human: Character): void {
+    zombie.stats.useActionPoints();
     // TODO: Actually implememt.
     // tslint:disable-next-line:no-console
     console.log(
@@ -74,6 +78,23 @@ export class AIController {
       'attacked',
       human.name
     );
+  }
+
+  private doMoveTowards(zombie: Character, human: Character): void {
+    zombie.stats.useActionPoints();
+    let x = 0;
+    let y = 0;
+    if (human.x > zombie.x) {
+      x = 1;
+    } else if (human.x < zombie.x) {
+      x = -1;
+    }
+    if (human.y > zombie.y) {
+      y = 1;
+    } else if (human.y < zombie.y) {
+      y = -1;
+    }
+    zombie.moveTo(this.grid.get(zombie.x + x, zombie.y + y));
   }
 
   private static closest(
