@@ -76,7 +76,7 @@ export class Cell {
    * Whether this cell can handle characters moving into it.
    */
   public get isPathable(): boolean {
-    return !this.mUnits.some(u => u.preventsMovement);
+    return !this.collides() && !this.mUnits.some(u => u.preventsMovement);
   }
 
   /**

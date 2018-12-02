@@ -1,6 +1,6 @@
 import * as phaser from 'phaser';
 import { Grid } from './grid';
-import { Character, PhysicalUnit } from './unit';
+import { Character, PhysicalUnit, UnitAction, UnitActionType } from './unit';
 import { UILayer, UILayerTile } from './ui-layer';
 import { AIController } from './ai-controller';
 import { IGridEvent, ObjectDataParser } from './parser';
@@ -63,7 +63,7 @@ export class World {
         action => gridX === action.position.x && gridY === action.position.y
       )
       .forEach(action => {
-        if (action.type === 'move') {
+        if (action.type === UnitActionType.Move) {
           const cell = this.grid.get(gridX, gridY);
           this.getSelectedPlayer().moveTo(cell);
 
@@ -76,11 +76,13 @@ export class World {
               this.getSelectedPlayer().speak(this.scene, ge.text);
             }
           });
-
+          // Reselect player to refresh actions etc.
           this.selectPlayer(this.getSelectedPlayerId());
-        } else if (action.type === 'attack') {
+        } else if (action.type === UnitActionType.Attack) {
           // tslint:disable-next-line:no-console
           console.log(`Attacking ${(action.targetUnit as Character).name}.`);
+          // Reselect player to refresh actions etc.
+          this.selectPlayer(this.getSelectedPlayerId());
         }
       });
   }
@@ -153,7 +155,7 @@ export class World {
       this.uiLayer.setActive(
         action.position.x,
         action.position.y,
-        action.type === 'move' ? UILayerTile.BLUE : UILayerTile.RED
+        action.type === UnitActionType.Move ? UILayerTile.BLUE : UILayerTile.RED
       );
     }
   }
@@ -190,11 +192,13 @@ export class World {
           }
           const position = new phaser.Math.Vector2(x + i, y + j);
           if (this.grid.isPathable(position.x, position.y)) {
-            actions.push(new UnitAction('move', position));
+            actions.push(new UnitAction(UnitActionType.Move, position));
           }
           const attackableUnit = this.grid.getAttackbleUnit(unit, x + i, y + j);
           if (attackableUnit !== null) {
-            actions.push(new UnitAction('attack', position, attackableUnit));
+            actions.push(
+              new UnitAction(UnitActionType.Attack, position, attackableUnit)
+            );
           }
         }
       }
@@ -205,6 +209,8 @@ export class World {
 
   public endTurn(): void {
     this.aiController.doTurn();
+    // Reselect player to refresh actions etc.
+    this.selectPlayer(this.getSelectedPlayerId());
   }
 
   /**
@@ -216,16 +222,5 @@ export class World {
       spawnHostile: z => this.spawnHostile(z),
       addGridEvent: e => this.gridEvents.push(e),
     }).parse(this.grid, tilemap);
-  }
-}
-
-export class UnitAction {
-  constructor(
-    public readonly type: 'move' | 'attack',
-    public readonly position: phaser.Math.Vector2,
-    public readonly targetUnit: PhysicalUnit | null = null
-  ) {
-    this.type = type;
-    this.position = new phaser.Math.Vector2(position);
   }
 }

@@ -239,3 +239,19 @@ export class Character extends DisplayUnit {
     scene.children.add(msgbox);
   }
 }
+
+export enum UnitActionType {
+  Move,
+  Attack,
+}
+
+export class UnitAction {
+  constructor(
+    public readonly type: UnitActionType,
+    public readonly position: phaser.Math.Vector2,
+    public readonly targetUnit: PhysicalUnit | null = null
+  ) {
+    this.type = type;
+    this.position = new phaser.Math.Vector2(position);
+  }
+}
