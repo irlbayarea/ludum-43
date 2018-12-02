@@ -2,12 +2,7 @@ import * as phaser from 'phaser';
 import { UIMenu } from './game/ui';
 import { World } from './game/world/world';
 import { Character } from './game/world/unit';
-
-// Global Flags.
-declare const FLAGS_DIMENSIONS: {
-  width: number;
-  height: number;
-};
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from './game/constants';
 
 // Test Scene
 class HelloScene extends phaser.Scene {
@@ -102,8 +97,8 @@ class HelloScene extends phaser.Scene {
   new phaser.Game({
     type: phaser.AUTO,
     parent: 'content',
-    width: FLAGS_DIMENSIONS.width,
-    height: FLAGS_DIMENSIONS.height,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
     resolution: 1,
     backgroundColor: '#EDEEC9',
     scene: [HelloScene],
