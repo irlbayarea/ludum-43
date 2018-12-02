@@ -1,5 +1,5 @@
 import * as phaser from 'phaser';
-import { PhysicalUnit } from './unit';
+import { PhysicalUnit, Control } from './unit';
 
 /**
  * The Cell class defines an immutable grid cell.
@@ -58,6 +58,8 @@ export class Cell {
     return this.units;
   }
 
+  // TODO: Implement this function as "getCellsInWalkingDistance" and use it in
+  // world.ts getUnitActions.
   /**
    * Enumerable collection of cells within a distance @param fill of current.
    */
@@ -75,6 +77,25 @@ export class Cell {
    */
   public get isPathable(): boolean {
     return !this.mUnits.some(u => u.preventsMovement);
+  }
+
+  /**
+   * Returns the units that are attackable by the given @param attackingUnit,
+   * which may be none.
+   */
+  public getAttackableUnits(
+    attackingUnit: PhysicalUnit
+  ): Iterable<PhysicalUnit> {
+    return this.mUnits.filter(attackedUnit => {
+      // Neutral can't attack or be attacked.
+      if (
+        attackingUnit.control === Control.Neutral ||
+        attackedUnit.control === Control.Neutral
+      ) {
+        return false;
+      }
+      return attackingUnit.control !== attackedUnit.control;
+    });
   }
 
   /**
@@ -111,6 +132,46 @@ export class Grid {
         this.set(x, y, new Cell(this, collidesFn, x, y));
       }
     }
+  }
+
+  /**
+   * Returns whether the cell at the given coordinates can be moved into. Given
+   * coordinates may be off the grid (in which case returns false).
+   */
+  public isPathable(x: number, y: number): boolean {
+    // Can't walk off the edge.
+    if (!this.isOnGrid(x, y)) {
+      return false;
+    }
+    return this.get(x, y).isPathable;
+  }
+
+  /**
+   * Returns a unit that is attackable by the @param unit at the given
+   * coordinates, or null if no such unit exists at the given cell.
+   */
+  public getAttackbleUnit(
+    attackingUnit: PhysicalUnit,
+    x: number,
+    y: number
+  ): PhysicalUnit | null {
+    if (!this.isOnGrid(x, y)) {
+      return null;
+    }
+    const cell = this.get(x, y);
+    const attackableUnits = Array.from(cell.getAttackableUnits(attackingUnit));
+    if (attackableUnits.length !== 0) {
+      return attackableUnits[0];
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns whether the given coordinates are on the grid.
+   */
+  public isOnGrid(x: number, y: number): boolean {
+    return x >= 0 && y >= 0 && x <= this.width - 1 && y <= this.height - 1;
   }
 
   /**

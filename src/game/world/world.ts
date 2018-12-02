@@ -33,6 +33,7 @@ export class World {
   }
 
   public handleClick(gridX: number, gridY: number) {
+    // Handle player character selection.
     let didSelectPlayer = false;
     this.players.forEach((p, id) => {
       if (gridX === p.x && gridY === p.y) {
@@ -40,28 +41,35 @@ export class World {
         didSelectPlayer = true;
       }
     });
+    // Don't allow selection and movement in the same click.
     if (didSelectPlayer) {
       return;
     }
+    // Handle player character actions.
     this.playerActions
       .filter(
         action => gridX === action.position.x && gridY === action.position.y
       )
-      .forEach((_) /* action */ => {
-        const cell = this.grid.get(gridX, gridY);
-        this.getSelectedPlayer().moveImmediate(cell);
+      .forEach(action => {
+        if (action.type === 'move') {
+          const cell = this.grid.get(gridX, gridY);
+          this.getSelectedPlayer().moveTo(cell);
 
-        // Handle GridEvent 'speak' type
-        this.gridEvents.forEach(ge => {
-          if (
-            ge.x === this.getSelectedPlayer().x &&
-            ge.y === this.getSelectedPlayer().y
-          ) {
-            this.getSelectedPlayer().speak(this.scene, ge.text);
-          }
-        });
+          // Handle GridEvent 'speak' type
+          this.gridEvents.forEach(ge => {
+            if (
+              ge.x === this.getSelectedPlayer().x &&
+              ge.y === this.getSelectedPlayer().y
+            ) {
+              this.getSelectedPlayer().speak(this.scene, ge.text);
+            }
+          });
 
-        this.selectPlayer(this.getSelectedPlayerId());
+          this.selectPlayer(this.getSelectedPlayerId());
+        } else if (action.type === 'attack') {
+          // tslint:disable-next-line:no-console
+          console.log(`Attacking ${(action.targetUnit as Character).name}.`);
+        }
       });
   }
 
@@ -73,13 +81,16 @@ export class World {
     this.updatePlayerActions();
   }
 
+  /**
+   * Updates the available actions that the currently selected PC may make.
+   */
   private updatePlayerActions() {
     this.playerActions = this.getUnitActions(this.getSelectedPlayer());
     for (const action of this.playerActions) {
       this.uiLayer.setActive(
         action.position.x,
         action.position.y,
-        UILayerTile.BLUE
+        action.type === 'move' ? UILayerTile.BLUE : UILayerTile.RED
       );
     }
   }
@@ -110,10 +121,17 @@ export class World {
     for (let i: integer = -d; i <= d; i += 1) {
       for (let j: integer = -d; j <= d; j += 1) {
         if (this.xyInBounds(x + i, y + j)) {
+          // Can't move onto self.
+          if (x === x + i && y === y + j) {
+            continue;
+          }
           const position = new phaser.Math.Vector2(x + i, y + j);
-          const cell = this.grid.get(position.x, position.y);
-          if (cell !== null && !cell.collides()) {
+          if (this.grid.isPathable(position.x, position.y)) {
             actions.push(new UnitAction('move', position));
+          }
+          const attackableUnit = this.grid.getAttackbleUnit(unit, x + i, y + j);
+          if (attackableUnit !== null) {
+            actions.push(new UnitAction('attack', position, attackableUnit));
           }
         }
       }
@@ -192,10 +210,11 @@ export class World {
 }
 
 export class UnitAction {
-  public readonly type: 'move' | 'attack';
-  public readonly position: phaser.Math.Vector2;
-
-  constructor(type: 'move' | 'attack', position: phaser.Math.Vector2) {
+  constructor(
+    public readonly type: 'move' | 'attack',
+    public readonly position: phaser.Math.Vector2,
+    public readonly targetUnit: PhysicalUnit | null = null
+  ) {
     this.type = type;
     this.position = new phaser.Math.Vector2(position);
   }
