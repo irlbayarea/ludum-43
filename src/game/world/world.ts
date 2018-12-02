@@ -12,6 +12,7 @@ export class World {
   private selectedPlayerId: number = 0;
   private readonly uiLayer!: UILayer;
   private playerActions: UnitAction[] = [];
+  private gridEvents: GridEvent[] = [];
 
   constructor(
     public readonly scene: phaser.Scene,
@@ -44,6 +45,17 @@ export class World {
       .forEach((_) /* action */ => {
         const cell = this.grid.get(gridX, gridY);
         this.getSelectedPlayer().moveImmediate(cell);
+
+        // Handle GridEvent 'speak' type
+        this.gridEvents.forEach(ge => {
+          if (
+            ge.x === this.getSelectedPlayer().x &&
+            ge.y === this.getSelectedPlayer().y
+          ) {
+            this.getSelectedPlayer().speak(this.scene, ge.text);
+          }
+        });
+
         this.selectPlayer(this.getSelectedPlayerId());
       });
   }
@@ -54,8 +66,6 @@ export class World {
     this.uiLayer.setActive(this.players[id].x, this.players[id].y);
     this.scene.cameras.main.startFollow(this.players[id].sprite);
     this.updatePlayerActions();
-
-    this.players[id].speak(this.scene, 'Oh gawd get us outta here!');
   }
 
   private updatePlayerActions() {
@@ -127,9 +137,23 @@ export class World {
           case 'hostile-spawn':
             this.spawnHostile(rawAssetObject);
             break;
+          case 'grid-event':
+            this.addGridEvent(rawAssetObject);
+            break;
         }
       }
     });
+  }
+
+  private addGridEvent(asset: RawAssetObject): void {
+    this.gridEvents.push(
+      new GridEvent(
+        asset.tileX,
+        asset.tileY,
+        asset.rawProperties.get('grid-event-type'),
+        asset.rawProperties.get('text')
+      )
+    );
   }
 
   private spawnPlayer(asset: RawAssetObject): void {
@@ -168,6 +192,18 @@ export class UnitAction {
     this.type = type;
     this.position = new phaser.Math.Vector2(position);
   }
+}
+
+/**
+ * Class encapsulating an event associated with a specific space in the world grid
+ */
+export class GridEvent {
+  constructor(
+    public readonly x: number,
+    public readonly y: number,
+    public readonly type: 'speak',
+    public readonly text: string
+  ) {}
 }
 
 /**
