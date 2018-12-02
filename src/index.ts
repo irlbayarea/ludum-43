@@ -91,10 +91,6 @@ class HelloScene extends phaser.Scene {
     this.children.add(this.uiMenu);
     this.input.topOnly = true;
   }
-
-  public getUI(): UIMenu {
-    return this.uiMenu;
-  }
 }
 
 (() => {
