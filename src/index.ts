@@ -86,6 +86,24 @@ class HelloScene extends phaser.Scene {
   };
 
   private onKeyInput(key: string): void {
+    switch (key) {
+      case 'tab':
+        let nextPlayer = this.world.getSelectedPlayerId() + 1;
+        if (nextPlayer > 2) {
+          nextPlayer = 0;
+        }
+        this.world.selectPlayer(nextPlayer);
+        return;
+      case 'space':
+        this.world.endTurn();
+        return;
+      case '1':
+      case '2':
+      case '3':
+        // tslint:disable-next-line:radix
+        this.world.selectPlayer(parseInt(key) - 1);
+        return;
+    }
     const delta = HelloScene.keyDeltas[key];
     const { x, y } = this.world.getSelectedPlayer();
     const tile = this.groundLayer.getTileAt(x + delta.x, y + delta.y);

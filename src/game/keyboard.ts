@@ -12,13 +12,14 @@ export class Keyboard {
     private readonly onPress: (key: string) => void
   ) {
     function createKey(
-      name: string
+      name: string | phaser.Input.Keyboard.KeyCodes,
+      humanized = `${name}`
     ): {
       name: string;
       key: phaser.Input.Keyboard.Key;
     } {
       return {
-        name,
+        name: humanized,
         key: scene.input.keyboard.addKey(name),
       };
     }
@@ -31,6 +32,11 @@ export class Keyboard {
       createKey('d'),
       createKey('z'),
       createKey('c'),
+      createKey('tab'),
+      createKey(phaser.Input.Keyboard.KeyCodes.ONE, '1'),
+      createKey(phaser.Input.Keyboard.KeyCodes.TWO, '2'),
+      createKey(phaser.Input.Keyboard.KeyCodes.THREE, '3'),
+      createKey(phaser.Input.Keyboard.KeyCodes.SPACE, 'space'),
     ];
   }
 

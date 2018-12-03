@@ -45,7 +45,7 @@ export class ObjectDataParser {
               'npc',
               Control.Hostile,
               'Zombie',
-              new Statistics(props.get('hp'), props.get('ap'))
+              new Statistics(2, 4)
             )
           );
           break;

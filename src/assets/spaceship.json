@@ -4118,24 +4118,24 @@
       "objects": [
         {
           "height": 0,
-          "id": 26,
-          "name": "pc-3",
+          "id": 17,
+          "name": "pc-1",
           "point": true,
           "properties": [
             {
               "name": "ap",
               "type": "int",
-              "value": 3
+              "value": 5
             },
             {
               "name": "hp",
               "type": "int",
-              "value": 7
+              "value": 5
             },
             {
               "name": "name",
               "type": "string",
-              "value": "Matan"
+              "value": "Jesse"
             },
             {
               "name": "object-type",
@@ -4148,7 +4148,7 @@
           "visible": true,
           "width": 0,
           "x": 337.333333333333,
-          "y": 410.333333333333
+          "y": 345.666666666667
         },
         {
           "height": 0,
@@ -4186,24 +4186,24 @@
         },
         {
           "height": 0,
-          "id": 17,
-          "name": "pc-1",
+          "id": 26,
+          "name": "pc-3",
           "point": true,
           "properties": [
             {
               "name": "ap",
               "type": "int",
-              "value": 5
+              "value": 3
             },
             {
               "name": "hp",
               "type": "int",
-              "value": 5
+              "value": 7
             },
             {
               "name": "name",
               "type": "string",
-              "value": "Jesse"
+              "value": "Matan"
             },
             {
               "name": "object-type",
@@ -4216,7 +4216,7 @@
           "visible": true,
           "width": 0,
           "x": 337.333333333333,
-          "y": 345.666666666667
+          "y": 410.333333333333
         },
         {
           "height": 0,
