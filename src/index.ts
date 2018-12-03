@@ -23,7 +23,10 @@ class HelloScene extends phaser.Scene {
     this.load.image('pc-2', 'src/assets/pc2.png');
     this.load.image('pc-3', 'src/assets/pc3.png');
     this.load.image('npc', 'src/assets/npc.png');
-
+    this.load.image('bad-1', 'src/assets/baddies1.png');
+    this.load.image('bad-2', 'src/assets/baddies2.png');
+    this.load.image('bad-3', 'src/assets/baddies3.png');
+    this.load.image('blood', 'src/assets/blood.png');
     this.load.image('laser', 'src/assets/laser.png');
 
     // Initialize listening to the keyboard.
