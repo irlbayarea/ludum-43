@@ -307,16 +307,21 @@ export class Character extends DisplayUnit {
    * Moves the character without animation.
    */
   public moveImmediate(newCell: Cell): void {
-    // Rotate sprite according to new direction it is facing.
-    const rotAngle: number = Math.atan2(
-      newCell.y - this.cell.y,
-      newCell.x - this.cell.x
-    );
-    this.sprite.rotation = rotAngle;
+    // Rotate to face new cell
+    this.rotateToFace(newCell);
     // Update AP.
     this.stats.useActionPoints(1);
     // Perform move.
     super.moveImmediate(newCell);
+  }
+
+  /**
+   * Rotate to face the given cell
+   */
+  private rotateToFace(c: Cell): void {
+    // Rotate sprite according to new direction it is facing.
+    const rotAngle: number = Math.atan2(c.y - this.cell.y, c.x - this.cell.x);
+    this.sprite.rotation = rotAngle;
   }
 
   /**
@@ -342,7 +347,11 @@ export class Character extends DisplayUnit {
    * This character performs an attack on the target character.
    */
   public attack(target: Character) {
+    // Rotate to face new cell
+    this.rotateToFace(target.cell);
+
     this.stats.useActionPoints(1);
+
     target.stats.useHitPoints(1);
   }
 
