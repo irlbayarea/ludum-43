@@ -1,6 +1,12 @@
 import * as phaser from 'phaser';
 import { Grid } from './grid';
-import { Character, PhysicalUnit, UnitAction, UnitActionType, Control } from './unit';
+import {
+  Character,
+  PhysicalUnit,
+  UnitAction,
+  UnitActionType,
+  Control,
+} from './unit';
 import { UILayer, UILayerTile } from './ui-layer';
 import { AIController } from './ai-controller';
 import { IGridEvent, ObjectDataParser } from './parser';
