@@ -1,6 +1,6 @@
 import * as phaser from 'phaser';
 import { Grid } from './grid';
-import { Character, PhysicalUnit, UnitAction, UnitActionType } from './unit';
+import { Character, PhysicalUnit, UnitAction, UnitActionType, Control } from './unit';
 import { UILayer, UILayerTile } from './ui-layer';
 import { AIController } from './ai-controller';
 import { IGridEvent, ObjectDataParser } from './parser';
@@ -35,7 +35,7 @@ export class World {
 
     // Create grid, AI controller.
     this.grid = new Grid(tilemap, groundLayer);
-    this.aiController = new AIController(this.grid, this.zombies);
+    this.aiController = new AIController(this.grid, this, this.zombies);
 
     // Load JSON.
     this.loadFromTilemapObjectLayer(tilemap);
@@ -110,7 +110,7 @@ export class World {
         } else if (action.type === UnitActionType.Attack) {
           const pc = this.getSelectedPlayer();
           const target = action.targetUnit as Character;
-          pc.attack(target);
+          this.performAttack(pc, target);
           // Reselect player to refresh actions etc.
           this.selectPlayer(this.getSelectedPlayerId());
           this.touchedFriendly();
@@ -128,6 +128,22 @@ export class World {
   }
 
   /**
+   * Performs an attack @param from @param to.
+   */
+  public performAttack(from: Character, to: Character): void {
+    from.rotateToFace(to.cell);
+    from.stats.useActionPoints(1);
+    to.stats.useHitPoints(1);
+    if (to.isDead) {
+      if (to.control === Control.Friendly) {
+        this.killFriendly(to);
+      } else if (to.control === Control.Hostile) {
+        this.killHostile(to);
+      }
+    }
+  }
+
+  /**
    * Should be called when @param character enters the game.
    */
   public spawnFriendly(character: Character): void {
@@ -139,8 +155,17 @@ export class World {
    * Should be called when @param character is defeated.
    */
   public killFriendly(character: Character): void {
-    this.players.splice(this.players.indexOf(character), 1);
+    const index = this.players.indexOf(character);
+    this.players.splice(index, 1);
     this.uiMenu.removeCharacter(character);
+    this.grid.get(character.x, character.y).removeUnit(character);
+    character.sprite.setTexture('blood');
+    character.sprite.setDisplaySize(32, 32);
+    if (this.getSelectedPlayerId() === index) {
+      // TODO: Handle last player dead.
+      this.selectPlayer((index + 1) % this.players.length);
+    }
+    this.touchedFriendly();
     // TODO: Remove from the screen.
     // TODO: Message or notification.
     // TODO: Ensure a dead unit is not selected.
@@ -164,7 +189,9 @@ export class World {
    * Should be called when @param character is defeated.
    */
   public killHostile(character: Character): void {
-    this.zombies.splice(this.players.indexOf(character), 1);
+    this.zombies.splice(this.zombies.indexOf(character), 1);
+    character.sprite.setTexture('blood');
+    character.sprite.setDisplaySize(32, 32);
     // TODO: Remove from the screen.
     // TODO: Message or notification.
   }

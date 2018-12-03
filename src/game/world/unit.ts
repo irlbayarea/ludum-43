@@ -26,7 +26,7 @@ export class PhysicalUnit {
    */
   constructor(
     protected readonly grid: Grid,
-    protected cell: Cell,
+    public cell: Cell,
     public control = Control.Neutral
   ) {
     cell.addUnit(this);
@@ -318,7 +318,7 @@ export class Character extends DisplayUnit {
   /**
    * Rotate to face the given cell
    */
-  private rotateToFace(c: Cell): void {
+  public rotateToFace(c: Cell): void {
     // Rotate sprite according to new direction it is facing.
     const rotAngle: number = Math.atan2(c.y - this.cell.y, c.x - this.cell.x);
     this.sprite.rotation = rotAngle;
@@ -343,19 +343,7 @@ export class Character extends DisplayUnit {
     super.newTurn();
   }
 
-  /**
-   * This character performs an attack on the target character.
-   */
-  public attack(target: Character) {
-    // Rotate to face new cell
-    this.rotateToFace(target.cell);
-
-    this.stats.useActionPoints(1);
-
-    target.stats.useHitPoints(1);
-  }
-
-  /**
+  /*
    * Returns whether this character is dead.
    */
   public get isDead(): boolean {

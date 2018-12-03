@@ -2,12 +2,14 @@ import * as phaser from 'phaser';
 
 import { Character, Control } from './unit';
 import { Grid } from './grid';
+import { World } from './world';
 
 export class AIController {
   private static readonly rangeOfVisibility = 5;
 
   constructor(
     private readonly grid: Grid,
+    private readonly world: World,
     private readonly zombies: Character[]
   ) {}
 
@@ -69,7 +71,7 @@ export class AIController {
   }
 
   private doAttack(zombie: Character, human: Character): void {
-    zombie.attack(human);
+    this.world.performAttack(zombie, human);
   }
 
   private doMoveTowards(zombie: Character, human: Character): void {
