@@ -77,6 +77,9 @@ export class World {
           this.gridEvents.forEach(ge => {
             if (ge.x === pc.x && ge.y === pc.y) {
               switch (ge.type) {
+                case 'yes-no':
+                  pc.speak(this.scene, ge.text, ['yes', 'no']);
+                  break;
                 case 'speak':
                   pc.speak(this.scene, ge.text);
                   break;

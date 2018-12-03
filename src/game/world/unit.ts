@@ -324,9 +324,9 @@ export class Character extends DisplayUnit {
    * @param scene
    * @param text
    */
-  public speak(scene: phaser.Scene, text: string) {
+  public speak(scene: phaser.Scene, text: string, choices: string[] = []) {
     // Display message box
-    const msgbox = new MessageBox(scene, this, text);
+    const msgbox = new MessageBox(scene, this, text, choices);
     scene.children.add(msgbox);
   }
 

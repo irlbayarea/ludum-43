@@ -2,9 +2,10 @@ import * as phaser from 'phaser';
 import { Character } from './world/unit';
 
 const borderSize = 5;
-const paddingSize = 8;
+const buttonPadding = 8;
 const messageBoxTextSize = 14;
 const dismissButtonSize = 16;
+const choiceButtonHeight = 2 * messageBoxTextSize;
 
 const menuWidth = 300;
 const menuHeight = 100;
@@ -13,16 +14,21 @@ export class MessageBox extends phaser.GameObjects.Container {
   private messageBox!: phaser.GameObjects.Graphics;
   private messageText!: phaser.GameObjects.Text;
   private dismissButton!: phaser.GameObjects.Container;
+  private readonly choiceButtons: phaser.GameObjects.Container[] = [];
+
+  private messageBoxBottom: number = 0;
 
   constructor(
     scene: phaser.Scene,
     private readonly character: Character,
-    private readonly text: string
+    private readonly text: string,
+    private readonly choices: string[] = []
   ) {
     super(scene, borderSize, borderSize);
 
     this.createMessageBox();
     this.createDismissButton();
+    this.createChoices();
     this.update();
 
     // Ignore Camera.
@@ -31,15 +37,18 @@ export class MessageBox extends phaser.GameObjects.Container {
 
   private createMessageBox(): void {
     this.width = menuWidth;
-    this.height = menuHeight;
+    this.height = menuHeight + this.choices.length > 0 ? choiceButtonHeight : 0;
 
     // Create Title Text.
     this.messageText = this.scene.add.text(
-      paddingSize,
-      paddingSize,
+      buttonPadding,
+      buttonPadding,
       `${this.character.name}:\n\n${this.text}`,
       {
-        wordWrap: { width: menuWidth - paddingSize * 2, useAdvancedWrap: true },
+        wordWrap: {
+          width: menuWidth - buttonPadding * 2,
+          useAdvancedWrap: true,
+        },
       }
     );
     this.messageText.setFontSize(messageBoxTextSize);
@@ -49,18 +58,14 @@ export class MessageBox extends phaser.GameObjects.Container {
     this.messageBox = this.scene.add.graphics();
     this.messageBox.lineStyle(borderSize, 0x008800);
     this.messageBox.fillStyle(0x000000);
-    this.messageBox.strokeRect(
-      0,
-      0,
-      this.width,
-      this.messageText.height + paddingSize * 2
-    );
-    this.messageBox.fillRect(
-      0,
-      0,
-      this.width,
-      this.messageText.height + paddingSize * 2
-    );
+
+    this.messageBoxBottom =
+      this.messageText.height +
+      buttonPadding * 2 +
+      (this.choices.length > 0 ? choiceButtonHeight : 0);
+
+    this.messageBox.strokeRect(0, 0, this.width, this.messageBoxBottom);
+    this.messageBox.fillRect(0, 0, this.width, this.messageBoxBottom);
 
     // Add message box and text to scene
     this.add(this.messageBox);
@@ -69,8 +74,8 @@ export class MessageBox extends phaser.GameObjects.Container {
 
   private createDismissButton(): void {
     this.dismissButton = this.scene.add.container(
-      this.width - dismissButtonSize - paddingSize,
-      paddingSize
+      this.width - dismissButtonSize - buttonPadding,
+      buttonPadding
     );
     this.dismissButton.setScrollFactor(0);
     this.dismissButton.setSize(dismissButtonSize, dismissButtonSize);
@@ -118,5 +123,73 @@ export class MessageBox extends phaser.GameObjects.Container {
       .on('pointerdown', () => {
         this.destroy();
       });
+  }
+
+  private createChoices(): void {
+    if (this.choices.length > 0) {
+      // tslint:disable-next-line:no-console
+      console.log(`Choices : ${this.choices}`);
+
+      this.height += choiceButtonHeight + buttonPadding;
+
+      const choiceButtonWidth: number =
+        this.width / this.choices.length - buttonPadding;
+
+      this.choices.forEach((cstr, cind) => {
+        const choiceButton: phaser.GameObjects.Container = this.scene.add.container(
+          this.width -
+            (choiceButtonWidth + buttonPadding) * (cind + 1) +
+            buttonPadding,
+          this.messageBoxBottom - choiceButtonHeight + buttonPadding / 2
+        );
+        choiceButton.setScrollFactor(0);
+        choiceButton.setSize(
+          choiceButtonWidth - buttonPadding,
+          choiceButtonHeight - buttonPadding
+        );
+
+        this.add(choiceButton);
+
+        const graphics = this.scene.add.graphics();
+        choiceButton.add(graphics);
+        graphics.lineStyle(borderSize, 0x00ff00);
+        graphics.fillStyle(0x000000);
+        graphics.strokeRect(0, 0, choiceButton.width, choiceButton.height);
+        graphics.fillRect(0, 0, choiceButton.width, choiceButton.height);
+
+        const text = this.scene.add.text(
+          choiceButton.width / 2,
+          choiceButton.height / 2,
+          cstr
+        );
+        text.setFontSize(messageBoxTextSize);
+        text.setColor('#00FF00');
+        text.setPosition(text.x - text.width / 2, text.y - text.height / 2);
+        choiceButton.add(text);
+
+        const rect = new phaser.Geom.Rectangle(
+          choiceButton.width / 2,
+          choiceButton.height / 2,
+          choiceButton.width,
+          choiceButton.height
+        );
+
+        choiceButton
+          .setInteractive({
+            hitArea: rect,
+            hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+            useHandCursor: true,
+          })
+          .on('pointerdown', () => {
+            this.destroy();
+          });
+
+        this.choiceButtons.push(choiceButton);
+      });
+    }
+  }
+
+  public destory(): void {
+    super.destroy();
   }
 }

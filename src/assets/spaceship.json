@@ -668,7 +668,7 @@
         21,
         21,
         21,
-        3,
+        21,
         21,
         21,
         21,
@@ -724,7 +724,7 @@
         63,
         63,
         63,
-        63,
+        3,
         23,
         7,
         7,
@@ -4408,6 +4408,35 @@
           "width": 0,
           "x": 400,
           "y": 371
+        },
+        {
+          "height": 0,
+          "id": 29,
+          "name": "",
+          "point": true,
+          "properties": [
+            {
+              "name": "grid-event-type",
+              "type": "string",
+              "value": "yes-no"
+            },
+            {
+              "name": "object-type",
+              "type": "string",
+              "value": "grid-event"
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "value": "Push button?"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 525.5,
+          "y": 367.5
         }
       ],
       "opacity": 1,
@@ -8527,7 +8556,7 @@
     }
   ],
   "nextlayerid": 10,
-  "nextobjectid": 29,
+  "nextobjectid": 30,
   "orientation": "orthogonal",
   "renderorder": "right-down",
   "tiledversion": "1.2.1",
