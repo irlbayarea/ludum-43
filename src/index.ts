@@ -1,13 +1,11 @@
 import * as phaser from 'phaser';
 import { World } from './game/world/world';
-import { Character } from './game/world/unit';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from './game/constants';
+import { Keyboard } from './game/keyboard';
 
 // Test Scene
 class HelloScene extends phaser.Scene {
-  private readonly zombies: Character[] = [];
-  private readonly players: Character[] = [];
-
+  private keyobard!: Keyboard;
   private tilemap!: phaser.Tilemaps.Tilemap;
   private world!: World;
   private groundLayer!: phaser.Tilemaps.DynamicTilemapLayer;
@@ -27,14 +25,20 @@ class HelloScene extends phaser.Scene {
     this.load.image('npc', 'src/assets/npc.png');
 
     this.load.image('laser', 'src/assets/laser.png');
+
+    // Initialize listening to the keyboard.
+    this.keyobard = new Keyboard(this, k => this.onKeyInput(k));
   }
 
   public create(): void {
+    // Load map.
     this.tilemap = this.make.tilemap({ key: 'map' });
-
     const tileset = this.tilemap.addTilesetImage('spaceship');
     this.groundLayer = this.tilemap.createDynamicLayer(0, tileset, 0, 0);
     this.groundLayer.setCollisionByProperty({ collides: true });
+    this.world = new World(this, this.tilemap, this.groundLayer);
+
+    // Set camera.
     this.cameras.main.setBounds(
       0,
       0,
@@ -42,19 +46,12 @@ class HelloScene extends phaser.Scene {
       this.tilemap.heightInPixels
     );
     this.cameras.main.scrollX = 200;
-
-    this.world = new World(
-      this,
-      this.tilemap,
-      this.groundLayer,
-      this.players,
-      this.zombies
-    );
   }
 
   public update(_: number, __: number): void {
     this.world.gameLoopUpdate();
     this.mouseInput();
+    this.keyobard.update();
   }
 
   private mouseInput(): void {
@@ -73,6 +70,28 @@ class HelloScene extends phaser.Scene {
       }
     }
     this.mouseDown = pointer.isDown;
+  }
+
+  private static readonly keyDeltas: {
+    [key: string]: { x: number; y: number };
+  } = {
+    q: { x: -1, y: -1 },
+    w: { x: 0, y: -1 },
+    e: { x: 1, y: -1 },
+    a: { x: -1, y: 0 },
+    s: { x: 0, y: 1 },
+    d: { x: 1, y: 0 },
+    z: { x: -1, y: 1 },
+    c: { x: 1, y: 1 },
+  };
+
+  private onKeyInput(key: string): void {
+    const delta = HelloScene.keyDeltas[key];
+    const { x, y } = this.world.getSelectedPlayer();
+    const tile = this.groundLayer.getTileAt(x + delta.x, y + delta.y);
+    if (tile !== null) {
+      this.world.handleClick(tile.x, tile.y);
+    }
   }
 }
 

@@ -15,6 +15,8 @@ export class World {
   private readonly uiMenu: UIMenu;
   private readonly aiController: AIController;
   private readonly gridEvents: IGridEvent[] = [];
+  private readonly players: Character[] = [];
+  private readonly zombies: Character[] = [];
 
   private selectedPlayerId: number = 0;
 
@@ -23,9 +25,7 @@ export class World {
   constructor(
     public readonly scene: phaser.Scene,
     private readonly tilemap: phaser.Tilemaps.Tilemap,
-    groundLayer: phaser.Tilemaps.DynamicTilemapLayer,
-    private readonly players: Character[],
-    private readonly zombies: Character[]
+    groundLayer: phaser.Tilemaps.DynamicTilemapLayer
   ) {
     // Create UI.
     this.uiLayer = new UILayer(this.tilemap);
