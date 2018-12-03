@@ -97,8 +97,17 @@ export class PhysicalUnit {
   public get preventsMovement(): boolean {
     return this.isVisible;
   }
+
+  /**
+   * Updates this unit's state based on end-of-turn mechanics.
+   */
+  // tslint:disable-next-line:no-empty
+  public newTurn(): void {}
 }
 
+/**
+ * Represents a renderable unit.
+ */
 export class DisplayUnit extends PhysicalUnit {
   constructor(
     grid: Grid,
@@ -118,6 +127,14 @@ export class DisplayUnit extends PhysicalUnit {
 
   public get isVisible(): boolean {
     return true;
+  }
+
+  /**
+   * Updates this unit's state based on end-of-turn mechanics.
+   */
+  // tslint:disable-next-line:no-empty
+  public newTurn(): void {
+    super.newTurn();
   }
 }
 
@@ -286,14 +303,20 @@ export class Character extends DisplayUnit {
       });
   }
 
-  // Rotates sprite according to new direction it is facing
+  /**
+   * Moves the character without animation.
+   */
   public moveImmediate(newCell: Cell): void {
+    // Rotate sprite according to new direction it is facing.
     const rotAngle: number = Math.atan2(
       newCell.y - this.cell.y,
       newCell.x - this.cell.x
     );
-    super.moveImmediate(newCell);
     this.sprite.rotation = rotAngle;
+    // Update AP.
+    this.stats.useActionPoints(1);
+    // Perform move.
+    super.moveImmediate(newCell);
   }
 
   /**
@@ -305,6 +328,14 @@ export class Character extends DisplayUnit {
     // Display message box
     const msgbox = new MessageBox(scene, this, text);
     scene.children.add(msgbox);
+  }
+
+  /**
+   * Updates this character's state based on end-of-turn mechanics.
+   */
+  public newTurn(): void {
+    this.stats.restoreFull();
+    super.newTurn();
   }
 }
 

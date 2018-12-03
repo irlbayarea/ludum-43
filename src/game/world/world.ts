@@ -71,24 +71,23 @@ export class World {
       .forEach(action => {
         if (action.type === UnitActionType.Move) {
           const cell = this.grid.get(gridX, gridY);
-          this.getSelectedPlayer().moveTo(cell);
-
+          const pc = this.getSelectedPlayer();
+          pc.moveTo(cell);
           // Handle GridEvent 'speak' type
           this.gridEvents.forEach(ge => {
-            if (
-              ge.x === this.getSelectedPlayer().x &&
-              ge.y === this.getSelectedPlayer().y
-            ) {
-              this.getSelectedPlayer().speak(this.scene, ge.text);
+            if (ge.x === pc.x && ge.y === pc.y) {
+              pc.speak(this.scene, ge.text);
             }
           });
           // Reselect player to refresh actions etc.
           this.selectPlayer(this.getSelectedPlayerId());
+          this.touchedFriendly();
         } else if (action.type === UnitActionType.Attack) {
           // tslint:disable-next-line:no-console
           console.log(`Attacking ${(action.targetUnit as Character).name}.`);
           // Reselect player to refresh actions etc.
           this.selectPlayer(this.getSelectedPlayerId());
+          this.touchedFriendly();
         }
       });
   }
@@ -186,25 +185,39 @@ export class World {
     const x = unit.x;
     const y = unit.y;
 
+    if (unit instanceof Character) {
+      if (unit.stats.actionPoints <= 0) {
+        return [];
+      }
+    }
+
     // Return a list of positions within a box
     // of height and width 2*d of current position
     const d: integer = 1;
     for (let i: integer = -d; i <= d; i += 1) {
       for (let j: integer = -d; j <= d; j += 1) {
         if (this.xyInBounds(x + i, y + j)) {
+          const position = new phaser.Math.Vector2(x + i, y + j);
           // Can't move onto self.
-          if (x === x + i && y === y + j) {
+          if (x === position.x && y === position.y) {
             continue;
           }
-          const position = new phaser.Math.Vector2(x + i, y + j);
-          if (this.grid.isPathable(position.x, position.y)) {
-            actions.push(new UnitAction(UnitActionType.Move, position));
-          }
-          const attackableUnit = this.grid.getAttackbleUnit(unit, x + i, y + j);
+          // Check for attack action.
+          const attackableUnit = this.grid.getAttackbleUnit(
+            unit,
+            position.x,
+            position.y
+          );
           if (attackableUnit !== null) {
             actions.push(
               new UnitAction(UnitActionType.Attack, position, attackableUnit)
             );
+            continue;
+          }
+          // Check for move action.
+          if (this.grid.isPathable(position.x, position.y)) {
+            actions.push(new UnitAction(UnitActionType.Move, position));
+            continue;
           }
         }
       }
@@ -215,6 +228,8 @@ export class World {
 
   public endTurn(): void {
     this.aiController.doTurn();
+    // Perform end-of-turn mechanics for PCs and enemies.
+    [...this.players, ...this.zombies].forEach(unit => unit.newTurn());
     // Reselect player to refresh actions etc.
     this.selectPlayer(this.getSelectedPlayerId());
   }
