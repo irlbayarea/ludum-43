@@ -161,6 +161,9 @@ export class World {
    * Should be called when @param character is defeated.
    */
   public killFriendly(character: Character): void {
+    if (this.players.indexOf(character) === -1) {
+      return;
+    }
     const index = this.players.indexOf(character);
     this.players.splice(index, 1);
     this.uiMenu.removeCharacter(character);
