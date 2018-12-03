@@ -4225,6 +4225,11 @@
           "point": true,
           "properties": [
             {
+              "name": "grid-event-type",
+              "type": "string",
+              "value": "win"
+            },
+            {
               "name": "object-type",
               "type": "string",
               "value": "grid-event"

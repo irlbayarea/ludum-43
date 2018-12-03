@@ -76,7 +76,29 @@ export class World {
           // Handle GridEvent 'speak' type
           this.gridEvents.forEach(ge => {
             if (ge.x === pc.x && ge.y === pc.y) {
-              pc.speak(this.scene, ge.text);
+              switch (ge.type) {
+                case 'speak':
+                  pc.speak(this.scene, ge.text);
+                  break;
+                case 'win':
+                  let numAlive: number = 0;
+                  this.players.forEach(p => {
+                    if (p.stats.hitPoints > 0) {
+                      numAlive += 1;
+                    }
+                  });
+
+                  const successString: string = `I did it! I made it!\n${
+                    numAlive > 1
+                      ? `And even ${numAlive - 1} of my crewmates made it!`
+                      : `Unforunately none of my crewmates survived...`
+                  }`;
+
+                  pc.speak(this.scene, successString);
+                  break;
+                default:
+                  break;
+              }
             }
           });
           // Reselect player to refresh actions etc.
