@@ -42,6 +42,12 @@ export class World {
 
     // Select starting player.
     this.selectPlayer(0);
+
+    // Introductory message box
+    this.getSelectedPlayer().speak(
+      this.scene,
+      `I have to get as many people outta here as I can! Alien zombies are attacking our spaceship!`
+    );
   }
 
   public handleClick(gridX: number, gridY: number) {

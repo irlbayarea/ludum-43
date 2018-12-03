@@ -4,6 +4,7 @@ import { Character } from './world/unit';
 const borderSize = 5;
 const paddingSize = 8;
 const messageBoxTextSize = 14;
+const dismissButtonSize = 16;
 
 const menuWidth = 300;
 const menuHeight = 100;
@@ -48,8 +49,18 @@ export class MessageBox extends phaser.GameObjects.Container {
     this.messageBox = this.scene.add.graphics();
     this.messageBox.lineStyle(borderSize, 0x008800);
     this.messageBox.fillStyle(0x000000);
-    this.messageBox.strokeRect(0, 0, this.width, this.height);
-    this.messageBox.fillRect(0, 0, this.width, this.height);
+    this.messageBox.strokeRect(
+      0,
+      0,
+      this.width,
+      this.messageText.height + paddingSize * 2
+    );
+    this.messageBox.fillRect(
+      0,
+      0,
+      this.width,
+      this.messageText.height + paddingSize * 2
+    );
 
     // Add message box and text to scene
     this.add(this.messageBox);
@@ -58,11 +69,11 @@ export class MessageBox extends phaser.GameObjects.Container {
 
   private createDismissButton(): void {
     this.dismissButton = this.scene.add.container(
-      this.width * 0.75 - borderSize * 2,
-      this.height * 0.75 - borderSize * 2
+      this.width - dismissButtonSize - paddingSize,
+      paddingSize
     );
     this.dismissButton.setScrollFactor(0);
-    this.dismissButton.setSize(75, 25);
+    this.dismissButton.setSize(dismissButtonSize, dismissButtonSize);
     this.add(this.dismissButton);
 
     const graphics = this.scene.add.graphics();
@@ -85,9 +96,9 @@ export class MessageBox extends phaser.GameObjects.Container {
     const text = this.scene.add.text(
       this.dismissButton.width / 2,
       this.dismissButton.height / 2,
-      'DISMISS'
+      'X'
     );
-    text.setFontSize(10);
+    text.setFontSize(8);
     text.setColor('#00FF00');
     text.setPosition(text.x - text.width / 2, text.y - text.height / 2);
     this.dismissButton.add(text);
