@@ -126,10 +126,10 @@ export class Statistics {
   private mActionPoints: number;
 
   constructor(
-    private readonly maxHitPoints: number,
+    private readonly mMaxHitPoints: number,
     private readonly maxActionPoints: number
   ) {
-    this.mHitPoints = maxHitPoints;
+    this.mHitPoints = mMaxHitPoints;
     this.mActionPoints = maxActionPoints;
   }
 
@@ -161,11 +161,11 @@ export class Statistics {
 
   public healBy(amount = 1): void {
     const newHitPoints = this.mHitPoints + amount;
-    this.mHitPoints = Math.min(this.maxHitPoints, newHitPoints);
+    this.mHitPoints = Math.min(this.mMaxHitPoints, newHitPoints);
   }
 
   public healFull(): void {
-    this.mHitPoints = this.maxHitPoints;
+    this.mHitPoints = this.mMaxHitPoints;
   }
 
   public restoreBy(amount = 1): void {
@@ -175,6 +175,64 @@ export class Statistics {
 
   public restoreFull(): void {
     this.mActionPoints = this.maxActionPoints;
+  }
+
+  public get maxHitPoints(): number {
+    return this.mMaxHitPoints;
+  }
+}
+
+const hpBarH: number = 15;
+const hpBarX: number = 0;
+const hpBarY: number = TILE_SIZE;
+const greenBarColor: number = 0xffffff;
+const redBarColor: number = 0xffffff;
+const textColor: string = '#FFFFFF';
+
+export class HealthBar extends phaser.GameObjects.Container {
+  public readonly greenBar!: phaser.GameObjects.Graphics;
+  public readonly redBar!: phaser.GameObjects.Graphics;
+  public readonly textBar!: phaser.GameObjects.Text;
+
+  constructor(scene: phaser.Scene) {
+    super(scene, hpBarX, hpBarY);
+
+    this.setSize(TILE_SIZE, hpBarH);
+
+    this.greenBar = this.scene.add
+      .graphics()
+      .fillRect(this.x, this.y, TILE_SIZE, hpBarH)
+      .fillStyle(greenBarColor);
+    this.redBar = this.scene.add
+      .graphics()
+      .fillRect(this.x, this.y, 0, hpBarH)
+      .fillStyle(redBarColor);
+    this.textBar = this.scene.add.text(hpBarX, hpBarY, `UNINITIALIZED`);
+
+    this.textBar.setColor(textColor);
+    this.textBar.setFontSize(10);
+
+    this.add(this.greenBar);
+    this.add(this.redBar);
+    this.add(this.textBar);
+
+    this.setVisible(false);
+  }
+
+  public refresh(c: Character): void {
+    this.setPosition(c.x * TILE_SIZE, c.y * TILE_SIZE);
+
+    const gw = (c.stats.hitPoints / c.stats.maxHitPoints) * TILE_SIZE;
+
+    this.greenBar.fillRect(this.x, this.y, gw, hpBarH);
+
+    this.redBar.fillRect(this.x + gw, this.y, TILE_SIZE - gw, hpBarH);
+
+    this.textBar.text = `${c.stats.hitPoints}/${c.stats.maxHitPoints}`;
+    this.textBar.setPosition(
+      hpBarX + this.textBar.width / 2,
+      hpBarY + (hpBarH - this.textBar.height) / 2
+    );
   }
 }
 
@@ -188,6 +246,8 @@ export class Character extends DisplayUnit {
     name: string,
     stats: Statistics
   ): Character {
+    const healthbar = new HealthBar(scene);
+    scene.children.add(healthbar);
     return new Character(
       grid,
       cell,
@@ -196,7 +256,8 @@ export class Character extends DisplayUnit {
       }),
       control,
       name,
-      stats
+      stats,
+      healthbar
     );
   }
 
@@ -206,14 +267,23 @@ export class Character extends DisplayUnit {
     sprite: phaser.GameObjects.Sprite,
     control: Control,
     public readonly name: string,
-    public readonly stats: Statistics
+    public readonly stats: Statistics,
+    private readonly healthbar: HealthBar
   ) {
     super(grid, cell, control, sprite);
     this.sprite.setSize(TILE_SIZE, TILE_SIZE);
-    this.sprite.setInteractive({
-      useHandCursor: true,
-    }); // Makes hand cursor show up when pointer over Character
     this.sprite.setDisplaySize(TILE_SIZE, TILE_SIZE);
+    this.sprite
+      .setInteractive({
+        useHandCursor: true,
+      })
+      .on('pointerover', () => {
+        this.healthbar.refresh(this);
+        this.healthbar.setVisible(true);
+      })
+      .on('pointerout', () => {
+        this.healthbar.setVisible(false);
+      });
   }
 
   // Rotates sprite according to new direction it is facing
@@ -222,9 +292,7 @@ export class Character extends DisplayUnit {
       newCell.y - this.cell.y,
       newCell.x - this.cell.x
     );
-
     super.moveImmediate(newCell);
-
     this.sprite.rotation = rotAngle;
   }
 

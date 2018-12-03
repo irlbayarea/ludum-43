@@ -14,7 +14,7 @@ export class MessageBox extends phaser.GameObjects.Container {
   private dismissButton!: phaser.GameObjects.Container;
 
   constructor(
-    public readonly scene: phaser.Scene,
+    scene: phaser.Scene,
     private readonly character: Character,
     private readonly text: string
   ) {
