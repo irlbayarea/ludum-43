@@ -169,11 +169,8 @@ export class Statistics {
 
   public useHitPoints(amount = 1): boolean {
     const newHitPoints = this.mHitPoints - amount;
-    if (newHitPoints >= 0) {
-      this.mHitPoints = newHitPoints;
-      return true;
-    }
-    return false;
+    this.mHitPoints = Math.max(newHitPoints, 0);
+    return newHitPoints >= 0;
   }
 
   public healBy(amount = 1): void {
@@ -336,6 +333,11 @@ export class Character extends DisplayUnit {
   public newTurn(): void {
     this.stats.restoreFull();
     super.newTurn();
+  }
+
+  public attack(target: Character) {
+    this.stats.useActionPoints(1);
+    target.stats.useHitPoints(1);
   }
 }
 
