@@ -167,10 +167,13 @@ export class Statistics {
     return this.mHitPoints;
   }
 
+  /**
+   * Decreases hit points. Returns whether character is dead after HP loss.
+   */
   public useHitPoints(amount = 1): boolean {
     const newHitPoints = this.mHitPoints - amount;
     this.mHitPoints = Math.max(newHitPoints, 0);
-    return newHitPoints >= 0;
+    return newHitPoints === 0;
   }
 
   public healBy(amount = 1): void {
@@ -335,9 +338,19 @@ export class Character extends DisplayUnit {
     super.newTurn();
   }
 
+  /**
+   * This character performs an attack on the target character.
+   */
   public attack(target: Character) {
     this.stats.useActionPoints(1);
     target.stats.useHitPoints(1);
+  }
+
+  /**
+   * Returns whether this character is dead.
+   */
+  public get isDead(): boolean {
+    return this.stats.hitPoints === 0;
   }
 }
 

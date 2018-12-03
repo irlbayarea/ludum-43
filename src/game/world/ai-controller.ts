@@ -69,15 +69,7 @@ export class AIController {
   }
 
   private doAttack(zombie: Character, human: Character): void {
-    zombie.stats.useActionPoints();
-    // TODO: Actually implememt.
-    // tslint:disable-next-line:no-console
-    console.log(
-      zombie.name,
-      `(${zombie.x}, ${zombie.y})`,
-      'attacked',
-      human.name
-    );
+    zombie.attack(human);
   }
 
   private doMoveTowards(zombie: Character, human: Character): void {

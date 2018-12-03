@@ -107,11 +107,7 @@ export class World {
         } else if (action.type === UnitActionType.Attack) {
           const pc = this.getSelectedPlayer();
           const target = action.targetUnit as Character;
-          // tslint:disable-next-line:no-console
-          console.log(pc, target);
           pc.attack(target);
-          // tslint:disable-next-line:no-console
-          console.log(target.stats.hitPoints);
           // Reselect player to refresh actions etc.
           this.selectPlayer(this.getSelectedPlayerId());
           this.touchedFriendly();
